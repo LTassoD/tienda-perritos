@@ -1,0 +1,27 @@
+{
+  "family": "tienda-perritos-db",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/LabRole",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/LabRole",
+  "containerDefinitions": [
+    {
+      "name": "db",
+      "image": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/tienda-perritos-db:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3306,
+          "hostPort": 3306,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "MYSQL_ROOT_PASSWORD", "value": "admin123" },
+        { "name": "MYSQL_DATABASE", "value": "tienda_perritos" }
+      ]
+    }
+  ]
+}
