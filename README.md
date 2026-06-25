@@ -41,3 +41,5 @@ Ir a Settings → Secrets and variables → Actions:
 - `AWS_SECRET_ACCESS_KEY`
 
 ## 5. Push a main → Pipeline se ejecuta automáticamente
+
+## Pipeline test
