@@ -1,0 +1,58 @@
+{
+  "family": "tienda-perritos-app",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::283214265663:role/LabRole",
+  "taskRoleArn": "arn:aws:iam::283214265663:role/LabRole",
+  "containerDefinitions": [
+    {
+      "name": "frontend",
+      "image": "283214265663.dkr.ecr.us-east-1.amazonaws.com/tienda-perritos-frontend:latest",
+      "essential": true,
+      "portMappings": [
+        { "containerPort": 80, "hostPort": 80, "protocol": "tcp" }
+      ]
+    },
+    {
+      "name": "backend",
+      "image": "283214265663.dkr.ecr.us-east-1.amazonaws.com/tienda-perritos-backend:latest",
+      "essential": true,
+      "portMappings": [
+        { "containerPort": 3001, "hostPort": 3001, "protocol": "tcp" }
+      ],
+      "environment": [
+        { "name": "DB_HOST", "value": "localhost" },
+        { "name": "DB_USER", "value": "root" },
+        { "name": "DB_PASSWORD", "value": "admin123" },
+        { "name": "DB_NAME", "value": "tienda_perritos" },
+        { "name": "DB_PORT", "value": "3306" },
+        { "name": "PORT", "value": "3001" }
+      ],
+      "dependsOn": [
+        { "containerName": "db", "condition": "HEALTHY" }
+      ]
+    },
+    {
+      "name": "db",
+      "image": "283214265663.dkr.ecr.us-east-1.amazonaws.com/tienda-perritos-db:latest",
+      "essential": true,
+      "portMappings": [
+        { "containerPort": 3306, "hostPort": 3306, "protocol": "tcp" }
+      ],
+      "environment": [
+        { "name": "MYSQL_ROOT_PASSWORD", "value": "admin123" },
+        { "name": "MYSQL_DATABASE", "value": "tienda_perritos" },
+        { "name": "MYSQL_USER", "value": "alumno" },
+        { "name": "MYSQL_PASSWORD", "value": "alumno123" }
+      ],
+      "healthCheck": {
+        "command": ["CMD", "mysqladmin", "ping", "-h", "localhost"],
+        "interval": 10,
+        "timeout": 5,
+        "retries": 5
+      }
+    }
+  ]
+}
