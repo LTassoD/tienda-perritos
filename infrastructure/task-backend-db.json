@@ -1,5 +1,5 @@
 {
-  "family": "tienda-perritos-app",
+  "family": "tienda-perritos-backend-db",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
@@ -7,14 +7,6 @@
   "executionRoleArn": "arn:aws:iam::283214265663:role/LabRole",
   "taskRoleArn": "arn:aws:iam::283214265663:role/LabRole",
   "containerDefinitions": [
-    {
-      "name": "frontend",
-      "image": "283214265663.dkr.ecr.us-east-1.amazonaws.com/tienda-perritos-frontend:latest",
-      "essential": true,
-      "portMappings": [
-        { "containerPort": 80, "hostPort": 80, "protocol": "tcp" }
-      ]
-    },
     {
       "name": "backend",
       "image": "283214265663.dkr.ecr.us-east-1.amazonaws.com/tienda-perritos-backend:latest",
@@ -43,9 +35,7 @@
       ],
       "environment": [
         { "name": "MYSQL_ROOT_PASSWORD", "value": "admin123" },
-        { "name": "MYSQL_DATABASE", "value": "tienda_perritos" },
-        { "name": "MYSQL_USER", "value": "alumno" },
-        { "name": "MYSQL_PASSWORD", "value": "alumno123" }
+        { "name": "MYSQL_DATABASE", "value": "tienda_perritos" }
       ],
       "healthCheck": {
         "command": ["CMD", "mysqladmin", "ping", "-h", "localhost"],
