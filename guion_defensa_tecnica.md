@@ -184,6 +184,26 @@ docker compose down
 **Narración:**
 "Backend: puerto 3001 solo desde el SG del ALB."
 
+**Acción:** Ir a AWS Secrets Manager → Secrets
+
+**Narración:**
+"Las credenciales se almacenan en AWS Secrets Manager, no hardcodeadas."
+
+**Acción:** Click en `tienda-perritos/db-password`
+
+**Narración:**
+"La contraseña de MySQL está aquí. El task definition la referencia como secret en vez de environment variable."
+
+**Acción:** Abrir `infrastructure/task-backend-db.json` en el editor
+
+**Narración:**
+"En el JSON vemos `secrets` en vez de `environment` para `DB_PASSWORD` y `MYSQL_ROOT_PASSWORD`. Ambas apuntan al mismo secret ARN."
+
+**Acción:** Señalar en pantalla el bloque secrets del JSON
+
+**Narración:**
+"El LabRole tiene permiso via resource policy para leer este secret. Zero exposición de credenciales en código."
+
 **Acción:** Ir a Application Auto Scaling → Scalable Targets → buscar `frontend-service`
 
 **Narración:**

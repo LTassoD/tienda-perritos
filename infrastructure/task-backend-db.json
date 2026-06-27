@@ -17,10 +17,12 @@
       "environment": [
         { "name": "DB_HOST", "value": "localhost" },
         { "name": "DB_USER", "value": "root" },
-        { "name": "DB_PASSWORD", "value": "admin123" },
         { "name": "DB_NAME", "value": "tienda_perritos" },
         { "name": "DB_PORT", "value": "3306" },
         { "name": "PORT", "value": "3001" }
+      ],
+      "secrets": [
+        { "name": "DB_PASSWORD", "valueFrom": "arn:aws:secretsmanager:us-east-1:283214265663:secret:tienda-perritos/db-password-qy9haD" }
       ],
       "dependsOn": [
         { "containerName": "db", "condition": "HEALTHY" }
@@ -33,8 +35,10 @@
       "portMappings": [
         { "containerPort": 3306, "hostPort": 3306, "protocol": "tcp" }
       ],
+      "secrets": [
+        { "name": "MYSQL_ROOT_PASSWORD", "valueFrom": "arn:aws:secretsmanager:us-east-1:283214265663:secret:tienda-perritos/db-password-qy9haD" }
+      ],
       "environment": [
-        { "name": "MYSQL_ROOT_PASSWORD", "value": "admin123" },
         { "name": "MYSQL_DATABASE", "value": "tienda_perritos" }
       ],
       "healthCheck": {
