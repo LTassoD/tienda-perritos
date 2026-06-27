@@ -184,6 +184,23 @@ docker compose down
 **Narración:**
 "Backend: puerto 3001 solo desde el SG del ALB."
 
+**Acción:** Ir a Application Auto Scaling → Scalable Targets → buscar `frontend-service`
+
+**Narración:**
+"También configuré Auto Scaling. Cada servicio escala de 1 a 3 tareas según CPU."
+
+**Acción:** Click en `cpu-target-frontend`
+
+**Narración:**
+"Uso target tracking con CPU al 70%. Si la CPU pasa 70%, escala hacia arriba. Si baja, escala hacia abajo. El cooldown es de 60 segundos para evitar cambios bruscos."
+
+**Narración:**
+"Justificación del umbral 70%:
+- Por debajo de 70% la tarea tiene margen para picos de tráfico
+- Por arriba de 70% indica que necesitamos otra tarea para mantener rendimiento
+- Es el valor recomendado por AWS para aplicaciones web
+- Evita sobreaprovisionamiento (ahorro de costos) y garantiza respuesta rápida"
+
 **Acción:** Abrir en navegador: http://tienda-perritos-alb-586299045.us-east-1.elb.amazonaws.com
 
 **Narración:**
