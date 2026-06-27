@@ -24,6 +24,14 @@
       "secrets": [
         { "name": "DB_PASSWORD", "valueFrom": "arn:aws:secretsmanager:us-east-1:283214265663:secret:tienda-perritos/db-password-qy9haD" }
       ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "ecs-tienda-perritos-backend",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "backend"
+        }
+      },
       "dependsOn": [
         { "containerName": "db", "condition": "HEALTHY" }
       ]
@@ -46,6 +54,14 @@
         "interval": 10,
         "timeout": 5,
         "retries": 5
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "ecs-tienda-perritos-db",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "db"
+        }
       }
     }
   ]

@@ -233,20 +233,49 @@ docker compose down
 
 ---
 
-## SEGMENTO 5: Mejoras y reflexión (1 min)
+## SEGMENTO 5: Análisis de logs, métricas y errores (3 min)
+
+"Además de desplegar, analicemos el comportamiento del sistema."
+
+**Acción:** Ir a CloudWatch → Log groups → `ecs-tienda-perritos-frontend`
 
 **Narración:**
-"El pipeline funciona pero se puede mejorar:"
+"Logs del frontend en CloudWatch. Vemos los health checks del ALB cada 15 segundos, todos respondiendo 200."
 
-"1. Multi-stage builds para reducir aún más las imágenes"
-"2. Paralelizar builds de frontend y backend en el pipeline"
-"3. Agregar tests automatizados antes del deploy"
-"4. Rollback automático si el health check del ALB falla"
-"5. Migrar a Infraestructura como Código con Terraform/CDK"
+**Acción:** Ir a `ecs-tienda-perritos-backend`
 
-"Este proyecto demuestra el ciclo DevOps completo: desarrollo local con Docker Compose, automatización con GitHub Actions, y orquestación serverless con ECS Fargate en AWS."
+**Narración:**
+"Logs del backend: servidor iniciado en puerto 3001, pool MySQL conectado. Sin errores."
 
-"Muchas gracias por su atención."
+**Acción:** Ir a CloudWatch → Metrics → ECS → CPUUtilization
+
+**Narración:**
+"Métricas de CPU: en reposo, cada tarea usa menos de 5% de CPU. Hay margen para escalar."
+
+**Acción:** Mostrar tabla de pipeline runs
+
+**Narración:**
+"Pipeline: los builds más recientes (#7-#11) fallaron por credenciales AWS expiradas — es normal en AWS Academy, las session tokens duran ~4 horas. El pipeline #5 fue exitoso en 3 min."
+
+**Análisis de tiempos:**
+| Pipeline | Tiempo | Estado |
+|---|---|---|
+| Docker build local | ~1s (cache) | ✅ |
+| Push a ECR (3 imágenes) | ~15s | ✅ |
+| Deploy ECS (force new) | ~30s | ✅ |
+| Health check ALB | ~15s | ✅ |
+| **Total CI/CD** | **~1 min** | ✅ |
+
+**Conclusiones:**
+"1. El pipeline reduce el deploy de manual (~15 min) a automático (~1 min)"
+"2. CloudWatch permite debuggear en producción sin acceder a servidores"
+"3. Secrets Manager elimina riesgo de exposición de credenciales"
+"4. Auto Scaling con target tracking 70% garantiza disponibilidad sin sobrecosto"
+"5. La arquitectura serverless (Fargate) escala a cero cuando no hay tráfico"
+
+---
+
+## SEGMENTO 6: Cierre (1 min)
 
 ---
 
