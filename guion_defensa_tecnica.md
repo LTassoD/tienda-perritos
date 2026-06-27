@@ -1,100 +1,216 @@
 # Guión de Defensa Técnica — Evaluación 3
+## Despliegue de tienda-perritos con Docker + ECS + CI/CD
+### Duración objetivo: 13-15 min
 
-## 1. Arquitectura del Proyecto (~2 min)
+---
 
+## SEGMENTO 1: Arquitectura del proyecto (2 min)
+
+**Narración:**
 "Muy buenos días, soy Luis Tasso y voy a presentar el proyecto tienda-perritos, una aplicación web de tres capas dockerizada desplegada en AWS ECS Fargate con CI/CD automatizado."
 
-"La aplicación gestiona productos de una tienda de alimentos para perros. Consta de:
-- Frontend: Nginx sirviendo HTML + JavaScript vanilla
-- Backend: API REST Node.js + Express
-- Base de datos: MySQL 8"
+**Acción:** Mostrar GitHub repo → estructura del proyecto
 
-(Mostrar en GitHub: estructura del repo, docker-compose.yml, frontend/Dockerfile, backend/Dockerfile, db/Dockerfile)
+"Este repo contiene la aplicación completa. Tenemos 3 carpetas principales:"
 
-## 2. Docker Compose local (~3 min)
+**Acción:** Click en `frontend/`
+"- Frontend: carpeta frontend con un Dockerfile que usa nginx:alpine, su configuración default.conf, el index.html y app.js"
 
-"Abrimos terminal y con un solo comando levantamos los 3 servicios:"
-```
+**Acción:** Click en `backend/`
+"- Backend: Node.js + Express con server.js, expone el puerto 3001"
+
+**Acción:** Click en `db/`
+"- Base de datos: MySQL 8 con un init.sql que crea la tabla productos y la seed de datos"
+
+**Acción:** Click en `docker-compose.yml`
+"Y el docker-compose.yml que orquesta los 3 servicios. Define una red interna 'tienda-net' y mapea puertos: frontend en 80, backend en 3001, db en 3307."
+
+---
+
+## SEGMENTO 2: Docker Compose local (3 min)
+
+**Acción:** Abrir terminal (Git Bash)
+
+**Narración:**
+"Con un solo comando levantamos los 3 contenedores:"
+
+**Acción:** Escribir y ejecutar:
+```bash
 docker compose up -d
 ```
-(Mostrar `docker ps` con 3 contenedores)
 
-"Abrimos http://localhost — ahí está el frontend."
+**Narración:**
+"Y con docker ps vemos los 3 contenedores activos:"
 
-"Probamos la API: http://localhost/api/productos — devuelve 3 productos en JSON."
+**Acción:** Ejecutar:
+```bash
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+```
 
-"Hacemos CRUD completo:"
-1. Crear: llenar formulario, guardar
-2. Editar: cambiar precio/stock
-3. Eliminar: confirmar eliminación
+**Narración:**
+"Tenemos tienda-frontend en puerto 80, tienda-backend en 3001, tienda-db en 3307."
 
-"El truco del nginx: usa `resolver 127.0.0.11` (DNS de Docker) con `proxy_pass http://backend:3001` para conectar al backend."
+**Acción:** Abrir navegador en http://localhost
 
-"Paramos con: `docker compose down`"
+**Narración:**
+"La interfaz carga — es una SPA simple con un formulario y la tabla de productos."
 
-## 3. Pipeline CI/CD (~3 min)
+**Acción:** Abrir http://localhost/api/productos en otra pestaña
 
-(Mostrar `.github/workflows/deploy.yml` en GitHub)
+**Narración:**
+"La API devuelve los 3 productos en JSON. Hagamos CRUD:"
 
-"El pipeline se activa con cada push a main. Pasos:"
-1. Checkout del código
-2. Configurar credenciales AWS (Access Key, Secret Key, Session Token como Secrets)
-3. Login a Amazon ECR
-4. Build & Push de 3 imágenes (frontend, backend, db)
-5. Registrar task definitions en ECS
-6. Force new deployment en los servicios
+**Acción:** Llenar formulario (nombre: "Hueso Carnoso", precio: 3500, stock: 20) → click "Agregar"
 
-"Detalle importante: para ECS uso `default.conf.ecs` (sin proxy_pass, solo archivos estáticos) copiándolo sobre `default.conf` antes del build. Así el frontend en ECS no intenta conectar a 'backend' (que no existe), porque el ALB maneja las rutas /api/*."
+**Narración:**
+"Creé un nuevo producto. Aparece en la tabla."
 
-(Mostrar workflow #7 en Actions — verde, pass en 9s)
+**Acción:** Click "Editar" en el producto nuevo → cambiar stock a 25 → guardar
 
-## 4. Infraestructura AWS (~4 min)
+**Narración:**
+"Edité el stock. La tabla se actualiza."
 
-"En AWS usé ECS Fargate por ser serverless — no pago por nodos EC2."
+**Acción:** Click "Eliminar" → confirmar
 
-(Entrar a Consola AWS → ECS → tienda-perritos-cluster)
+**Narración:**
+"Eliminé el producto. CRUD completo funcionando."
 
-"Tengo 2 servicios:"
-- **frontend-service**: 1 tarea corriendo (Nginx, solo estáticos)
-- **backend-service**: 1 tarea corriendo (Node.js + MySQL sidecar, comparten localhost)
+**Acción:** Volver a terminal → ejecutar:
+```bash
+docker compose down
+```
 
-(Click en frontend-service → tarea → detalles)
+**Narración:**
+"Con docker compose down detenemos todo."
 
-"Cada tarea Fargate con 256 CPU y 512 MB RAM."
+---
 
-(Volver → EC2 → Target Groups)
+## SEGMENTO 3: Pipeline CI/CD (3 min)
 
-"Application Load Balancer 'tienda-perritos-alb' con 2 target groups:"
-- **tg-frontend**: health check a / → healthy
-- **tg-backend**: health check a /api/productos → healthy
+**Acción:** Volver a GitHub → pestaña Actions
 
-(Ver Listener en ALB)
+**Narración:**
+"GitHub Actions automatiza el despliegue. Cada push a main dispara el workflow."
 
-"El listener del ALB enruta:"
-- /api/* → tg-backend
-- / → tg-frontend
+**Acción:** Click en `.github/workflows/deploy.yml`
 
-(VPC → Security Groups)
+**Narración:**
+"El workflow tiene 3 fases:"
 
-"Security Groups - mínimo privilegio:"
-- `tienda-alb-sg`: puerto 80 desde 0.0.0.0/0
-- `tienda-frontend-sg`: puerto 80 solo desde ALB
-- `tienda-backend-sg`: puerto 3001 solo desde ALB
+**Acción:** Señalar paso "Checkout repo"
+"1. Checkout del código"
 
-(Mostrar ALB funcionando:)
+**Acción:** Señalar paso "Configure AWS credentials"
+"2. Configura credenciales AWS desde GitHub Secrets — Access Key, Secret Key y Session Token"
 
-"Frontend: http://tienda-perritos-alb-586299045.us-east-1.elb.amazonaws.com — 200 OK"
-"API: /api/productos — 3 productos en JSON"
+**Acción:** Señalar paso "Login to Amazon ECR"
+"3. Login a ECR — los repositorios de imágenes"
 
-## 5. Mejoras y reflexión (~1 min)
+**Acción:** Señalar "Build & push frontend"
+"4. Build y push de las 3 imágenes: frontend, backend, db. Notar el truco: cp frontend/default.conf.ecs frontend/default.conf — para ECS usamos una config sin proxy_pass, porque el ALB maneja /api/*."
 
-"Oportunidades de mejora:
-- Multi-stage builds para reducir tamaño de imágenes (nginx alpine ya es pequeño)
-- Docker layer caching para builds más rápidos
-- Tests automatizados antes del deploy
-- Rollback automático si falla health check
-- Migrar a Terraform/CDK en vez de scripts manuales"
+**Acción:** Señalar "Register task definition"
+"5. Registra las task definitions actualizadas"
 
-"Este proyecto demuestra integración continua, despliegue automatizado y orquestación serverless en AWS con GitHub Actions + ECS Fargate"
+**Acción:** Señalar "Update ECS services"
+"6. Fuerza nuevo deployment en ECS con --force-new-deployment"
 
-## Tiempo total estimado: 13-15 min
+**Acción:** Volver a Actions → workflow #7
+
+**Narración:**
+"Este es el último run. Pasó en 9 segundos — los builds usan cache de Docker."
+
+---
+
+## SEGMENTO 4: Infraestructura AWS (4 min)
+
+**Acción:** Abrir Consola AWS → buscar "ECS"
+
+**Narración:**
+"Entramos a ECS. Elegí Fargate por ser serverless — no pago por nodos EC2, solo por los recursos que uso."
+
+**Acción:** Click en Clusters → `tienda-perritos-cluster`
+
+**Narración:**
+"El cluster tiene 2 servicios: frontend-service y backend-service, cada uno con 1 tarea."
+
+**Acción:** Click en `frontend-service` → luego en la tarea (el link azul)
+
+**Narración:**
+"Cada tarea Fargate usa 256 CPU y 512 MB RAM. El frontend solo sirve archivos estáticos."
+
+**Acción:** Click en pestaña "Configuration" → mostrar detalles del task definition
+
+**Narración:**
+"La imagen viene de ECR. Puerto 80 mapeado a 80. Sin health check adicional — el ALB lo verifica."
+
+**Acción:** Volver a Consola → buscar "EC2" → "Target Groups"
+
+**Narración:**
+"El ALB distribuye tráfico. Dos target groups:"
+
+**Acción:** Click en `tg-frontend` → pestaña "Targets"
+
+**Narración:**
+"tg-frontend: health check a GET / espera 200. La IP interna 172.31.x.x está healthy."
+
+**Acción:** Click en `tg-backend` → pestaña "Targets"
+
+**Narración:**
+"tg-backend: health check a GET /api/productos. También healthy."
+
+**Acción:** Volver a EC2 → "Load Balancers" → click en `tienda-perritos-alb` → pestaña "Listeners"
+
+**Narración:**
+"El listener del ALB: regla por defecto (/) → tg-frontend. Regla condicional: si path es /api/* → tg-backend."
+
+**Acción:** Navegar a VPC → "Security Groups"
+
+**Narración:**
+"Security Groups con mínimo privilegio:"
+
+**Acción:** Click en `tienda-alb-sg`
+
+**Narración:**
+"ALB: puerto 80 abierto a internet (0.0.0.0/0)."
+
+**Acción:** Click en `tienda-frontend-sg`
+
+**Narración:**
+"Frontend: puerto 80 solo desde el SG del ALB."
+
+**Acción:** Click en `tienda-backend-sg`
+
+**Narración:**
+"Backend: puerto 3001 solo desde el SG del ALB."
+
+**Acción:** Abrir en navegador: http://tienda-perritos-alb-586299045.us-east-1.elb.amazonaws.com
+
+**Narración:**
+"El frontend desde ALB responde 200."
+
+**Acción:** Abrir /api/productos
+
+**Narración:**
+"La API devuelve los productos. Todo funcionando."
+
+---
+
+## SEGMENTO 5: Mejoras y reflexión (1 min)
+
+**Narración:**
+"El pipeline funciona pero se puede mejorar:"
+
+"1. Multi-stage builds para reducir aún más las imágenes"
+"2. Paralelizar builds de frontend y backend en el pipeline"
+"3. Agregar tests automatizados antes del deploy"
+"4. Rollback automático si el health check del ALB falla"
+"5. Migrar a Infraestructura como Código con Terraform/CDK"
+
+"Este proyecto demuestra el ciclo DevOps completo: desarrollo local con Docker Compose, automatización con GitHub Actions, y orquestación serverless con ECS Fargate en AWS."
+
+"Muchas gracias por su atención."
+
+---
+
+## Tiempo total: 13-15 min
