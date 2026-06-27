@@ -1,0 +1,15 @@
+server {
+    listen 80;
+    server_name _;
+    charset utf-8;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Archivos estáticos (tu SPA sencilla)
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # En ECS el ALB maneja /api/* hacia el backend target group
+}
